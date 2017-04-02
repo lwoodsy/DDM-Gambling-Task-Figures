@@ -1,0 +1,265 @@
+---
+title: "DDM Figures for Publication Spring 2017"
+author: "Summer Clay"
+date: "February 6, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Package import
+library(tidyverse)
+library(forcats)
+library(ggplot2)
+library(RColorBrewer)
+library(cowplot)
+
+# Create ggplot2 theme for graphs 
+theme_apa <- theme_bw()+
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+                axis.line=element_line(),
+        text=element_text(family='Times'),
+        legend.title=element_blank())
+```
+
+### List of Figures Needed
+
+1. Loss Aversion Histogram 
+2. DDM Traces of Parameters for Model 19 (Three Density Plots or Histograms)
+3. DDM Traces of Drift Rate by Win/Loss Decks for Model 21 (Two Density Plots or Histograms)
+
+
+### 1. Loss Aversion Histogram
+
+```{r one_LA_data, echo = FALSE, results = FALSE}
+## Bring in data
+LA_data <- read.csv("C:/Users/Summer/Desktop/DDM Traces for figures/DDM LA data.csv", col.names = c("Subject", "LA"))
+
+```
+
+
+```{r one_LA_hist, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+## LA plot data 
+LA_plot <- ggplot(data = LA_data, aes(x = as.numeric(LA))) + 
+  theme_apa 
+
+# LA histogram with large bins
+LA_hist_lb <- LA_plot + 
+  geom_histogram(binwidth = 0.5, fill = "light blue", color = "black", alpha = 0.75)  + 
+  ylim(0, 30) + scale_x_continuous(breaks = seq(0.0, 5, 0.5), limits = c(-0.0, 5.5)) + 
+  labs(
+    x = "Loss Aversion (lambda)",
+    y = "Frequency")
+
+LA_hist_lb <- LA_hist_lb + geom_segment(x = 1.39, y = -1.0, xend = 1.39, yend = 31, color = "#999999") + geom_segment(x = 2.69, y = -1.0, xend = 2.69, yend = 31, color = "#999999")
+
+LA_hist_lb
+```
+
+
+### 2. DDM Traces of Parameters for Model 19
+
+```{r two_m19_data, echo = FALSE, results = FALSE}
+#Bring in data
+M19_all <- read.csv("C:/Users/Summer/Desktop/DDM Traces for figures/150810_traces_group_m19_n104.csv")
+
+```
+
+
+#### M19 Starting Point Plot: SP x Loss Aversion Groups
+
+```{r two_m19_sp, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+## Build starting point (SP) parameter data frame
+M19_sp <- M19_all %>% # name SP parameter data
+  select(sample, sp_LAL:sp_LAU) %>% # Pull out SP parameter data
+    gather(sp_LAL, sp_LAM, sp_LAU, key = "LA", value = "SPT") # Transform from wide to long format with LA group as variable
+
+# SP data variable conversions
+M19_sp$SPT <- as.numeric(M19_sp$SPT) # 'Starting Point Traces' conversion to numeric variable
+M19_sp$sample <- factor(M19_sp$sample) # 'sample' conversion to factor variable  
+M19_sp$LA <- factor(M19_sp$LA) # 'Loss Aversion Group' conversion to factor variable
+  levels(M19_sp$LA) <- c("LAL", "LAM", "LAU") # Rename 'Loss Aversion Group' factor levels for graphing
+  
+## SP plot data 
+m19_sp_plot <- ggplot(data = M19_sp, aes(x = as.numeric(SPT), group = LA, fill = LA)) + 
+  theme_apa  +
+  scale_fill_brewer(palette = "Set1") 
+
+# SP histogram
+m19_sp_hist <- m19_sp_plot + 
+  geom_histogram(position = "identity",  alpha = 0.5, binwidth = 0.005, color = "black")  + 
+  ylim(0, 2000) + xlim(0.4, 0.55) + 
+  labs(
+    x = "Starting Point (Traces)",
+    y = "Frequency") 
+
+m19_sp_hist
+```
+
+
+#### M19 Barrier Plot: Barrier x Loss Aversion Groups
+
+```{r two_m19_barrier, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+## Build barrier (B) parameter data frame
+M19_b <- M19_all %>% # name B parameter data
+  select(sample, bar_LAL:bar_LAU) %>% # Pull out B parameter data
+    gather(bar_LAL, bar_LAM, bar_LAU, key = "LA", value = "BT") # Transform from wide to long format with LA group as variable
+
+# B data variable conversions
+M19_b$SPT <- as.numeric(M19_b$BT) # 'Barrier Traces' conversion to numeric variable
+M19_b$sample <- factor(M19_b$sample) # 'sample' conversion to factor variable  
+M19_b$LA <- factor(M19_b$LA) # 'Loss Aversion Group' conversion to factor variable
+  levels(M19_b$LA) <- c("Lower LA Group", "Middle LA Group", "Upper LA Group") # Rename 'Loss Aversion Group' factor levels for graphing
+  
+## B plot data 
+m19_b_plot <- ggplot(data = M19_b, aes(x = as.numeric(BT), group = LA, fill = LA)) + 
+  theme_apa  +
+  scale_fill_brewer(palette = "Set1")
+
+# B histogram
+m19_b_hist <- m19_b_plot + 
+  geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.02, color = "black")  + 
+  ylim(0, 2000) + xlim(1.3, 2.0) + 
+  labs(
+    x = "Barrier (Traces)",
+    y = "Frequency")
+
+m19_b_hist
+
+```
+
+
+#### M19 Drift Rate Plot: Drift Rate x Loss Aversion Groups
+
+```{r two_m19_dr, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+## Build drift rate (DR) parameter data frame
+M19_dr <- M19_all %>% # name DR parameter data
+  select(sample:dr_LAU) %>% # Pull out DR parameter data
+    gather(dr_LAL, dr_LAM, dr_LAU, key = "LA", value = "DRT") # Transform from wide to long format with LA group as variable
+
+# B data variable conversions
+M19_dr$SPT <- as.numeric(M19_dr$DRT) # 'Drift Rate Traces' conversion to numeric variable
+M19_dr$sample <- factor(M19_dr$sample) # 'sample' conversion to factor variable  
+M19_dr$LA <- factor(M19_dr$LA) # 'Loss Aversion Group' conversion to factor variable
+  levels(M19_dr$LA) <- c("Lower LA Group", "Middle LA Group", "Upper LA Group") # Rename 'Loss Aversion Group' factor levels for graphing
+  
+## DR plot data 
+m19_dr_plot <- ggplot(data = M19_dr, aes(x = as.numeric(DRT), group = LA, fill = LA)) + 
+  theme_apa  +
+  scale_fill_brewer(palette = "Set1")
+
+# DR histogram
+m19_dr_hist <- m19_dr_plot + 
+  geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.035, color = "black")  + 
+  ylim(0, 2000) + xlim(-0.2, 1.0) + 
+  labs(
+    x = "Drift Rate (Traces)",
+    y = "Frequency")
+
+m19_dr_hist
+```
+
+
+### 3. DDM Traces of Drift Rate by Win/Loss Decks for Model 21
+
+```{r three_m21_data, echo = FALSE, results = FALSE}
+# Bring in data
+M21_DR <- read.csv("C:/Users/Summer/Desktop/DDM Traces for figures/150810_traces_group_m21_n104.csv")
+  
+```
+
+#### M21 Loss Plot: Drift Rate x Loss Aversion Group 
+
+```{r three_m21_Loss, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+## Build loss deck data frame
+M21_DR_Loss <- M21_DR %>% # name loss deck data
+  select(sample:Loss_LAU) %>% # Pull out Loss Deck data
+    gather(Loss_LAL, Loss_LAM, Loss_LAU, key = "LA", value = "DRT") # Transform from wide to long format with LA group as variable
+
+# Loss data variable conversions
+M21_DR_Loss$DRT <- as.numeric(M21_DR_Loss$DRT) # 'Drift Rate Traces' conversion to numeric variable
+M21_DR_Loss$sample <- factor(M21_DR_Loss$sample) # 'sample' conversion to factor variable  
+M21_DR_Loss$LA <- factor(M21_DR_Loss$LA) # 'Loss Aversion Group' conversion to factor variable
+  levels(M21_DR_Loss$LA) <- c("LAL", "LAM", "LAU") # Rename 'Loss Aversion Group' factor levels for graphing
+
+## Loss deck data for M21 ready to graph (below) 
+# Loss deck data:
+# head(M21_DR_Loss)
+
+## Loss deck plot data 
+m21_loss_plot <- ggplot(data = M21_DR_Loss, aes(x = as.numeric(DRT), group = LA, fill = LA)) + 
+  theme_apa  +
+  scale_fill_brewer(palette = "Set1")
+
+# Loss deck histogram
+m21_loss_hist <- m21_loss_plot + 
+  geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.05, color = "black")  + 
+  ylim(0, 2000) + xlim(-0.2, 1.0) + 
+  labs(
+    x = "Drift Rate (Traces)",
+    y = "Frequency")
+
+m21_loss_hist
+
+```
+
+#### M21 Win Plot: Drift Rate x Loss Aversion Group
+
+```{r three_m21_Win, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+## Build win deck data frame
+M21_DR_Win <- M21_DR %>% # name win deck data
+  select(sample, Win_LAL:Win_LAU) %>% # Pull out Win Deck data
+    gather(Win_LAL, Win_LAM, Win_LAU, key = "LA", value = "DRT") # Transform from wide to long format with LA group as variable
+
+# Win data variable conversions
+M21_DR_Win$DRT <- as.numeric(M21_DR_Win$DRT) # 'Drift Rate Traces' conversion to numeric variable
+M21_DR_Win$sample <- factor(M21_DR_Win$sample) # 'sample' conversion to factor variable  
+M21_DR_Win$LA <- factor(M21_DR_Win$LA) # 'Loss Aversion Group' conversion to factor variable
+  levels(M21_DR_Win$LA) <- c("LAL", "LAM", "LAU") # Rename 'Loss Aversion Group' factor levels for graphing
+
+## Windeck data for M21 ready to graph (below)
+# Win deck data:
+# head(M21_DR_Win)
+
+## Win deck plot data
+m21_win_plot <- ggplot(data = M21_DR_Win, aes(x = as.numeric(DRT), group = LA, fill = LA)) + 
+  theme_apa +
+  scale_fill_brewer(palette = "Set1")
+
+# Win deck histogram
+m21_win_hist <- m21_win_plot + 
+  geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.05, color = "black") + 
+  ylim(0, 2000) + xlim(-0.2, 1.0)  + 
+  labs(
+    x = "Drift Rate (Traces)",
+    y = "Frequency")
+
+m21_win_hist
+
+```
+
+
+
+#### Panels for Manuscript
+
+
+Figure 1:
+
+
+```{r figure_one, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+figure_one <- plot_grid(LA_hist_lb, m19_sp_hist + theme(legend.position = c(.85,.75)), m19_b_hist + theme(legend.position="none"), m19_dr_hist + theme(legend.position="none"), align = 'h', labels = c('A', 'B', 'C', 'D'))
+
+figure_one
+```
+
+
+Figure 2:
+
+
+```{r figure_two, echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
+figure_two <- plot_grid(m21_win_hist + theme(legend.position="none"), m21_loss_hist + theme(legend.position = c(.85,.75)), NULL, NULL, align = 'h', labels = c('A', 'B'))
+
+figure_two
+```
